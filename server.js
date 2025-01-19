@@ -23,7 +23,7 @@ const app = express();
 const port = 7777;
 
 const corsOptions = {
-    origin: "http://localhost:3000", // Autorise seulement l'origine localhost:3000
+    origin: "https://pet-connect-front-deploy.vercel.app", // Autorise seulement l'origine localhost:3000
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // Ajout des méthodes supplémentaires
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'], // Ajout des en-têtes personnalisés
     exposedHeaders: ['X-Auth-Token', 'X-Custom-Header'], // En-têtes à exposer au client
