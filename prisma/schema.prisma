@@ -1,0 +1,264 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int             @id @default(autoincrement())
+  email               String          @unique
+  userName            String          @unique
+  firstName           String
+  lastName            String
+  phoneNumber         String          @unique
+  password            String
+  url                 String?
+  countService        Int            @default(0)
+
+  role                Role           @relation(fields: [roleId], references: [id])
+  roleId              Int
+  badge               Badge?         @relation(fields: [badgeId], references: [id], onDelete: SetNull)
+  badgeId             Int?
+
+  posts               Post[]
+  topics              Topic[]
+  pets                Pet[]
+  proposals           Proposal[]
+  notifications       Notification[]
+}
+
+model Role {
+  id                  Int             @id @default(autoincrement())
+  name                String
+
+  users               User[]
+}
+
+model Badge {
+  id                  Int             @id @default(autoincrement())
+  name                String
+  url                 String
+  numberServices      Int
+
+  users               User[]
+}
+
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Notification -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
+model Notification {
+  id                  Int             @id @default(autoincrement())
+  name                String
+
+  user                User            @relation(fields: [userId], references: [id])
+  userId              Int
+  typeNotification    TypeNotification            @relation(fields: [typeNotificationId], references: [id])
+  typeNotificationId  Int
+}
+
+
+model TypeNotification {
+  id                  Int             @id @default(autoincrement())
+  name                String
+
+  notifications       Notification[]
+}
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- FORUM -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+model Forum {
+  id                  Int             @id @default(autoincrement())
+  name                String          @unique
+
+  topics              Topic[]
+}
+
+model Topic {
+  id                  Int             @id @default(autoincrement())
+  name                String
+  creationTime        BigInt
+  updateTime          BigInt
+
+  forum               Forum           @relation(fields: [forumId], references: [id])
+  forumId             Int
+  user                User            @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  userId              Int
+
+  posts               Post[]
+}
+
+model Post {
+  id                  Int             @id @default(autoincrement())
+  body                String
+  creationTime        BigInt
+
+  topic               Topic           @relation(fields: [topicId], references: [id])
+  topicId             Int
+  user                User            @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  userId              Int
+}
+
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- PET -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+model Pet {
+  id                  Int             @id @default(autoincrement())
+  nickName            String
+  birthDate           BigInt
+  url                 String
+  identification      String?
+  isDisable           Boolean         @default(false)
+
+  race                Race            @relation(fields: [raceId], references: [id])
+  raceId              Int
+  user                User            @relation(fields: [userId], references: [id])
+  userId              Int
+  sex                 Sex             @relation(fields: [sexId], references: [id])
+  sexId               Int
+
+  vaccinations        Vaccination[]
+  requests            Request[]
+}
+
+model Race {
+  id                  Int             @id @default(autoincrement())
+  name                String
+
+  specie              Specie          @relation(fields: [specieId], references: [id])
+  specieId            Int
+
+  pets                Pet[]
+}
+
+model Specie {
+  id                  Int             @id @default(autoincrement())
+  name                String          @unique
+
+  races               Race[]
+  types               Type[]
+  proposals           Proposal[]
+}
+
+model Sex {
+  id                  Int             @id @default(autoincrement())
+  name                String          @unique
+
+  pets                Pet[]
+}
+
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- VACCINE -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+model Vaccine {
+  id                  Int             @id @default(autoincrement())
+  name                String
+  needBooster         Boolean
+
+  vaccinations        Vaccination[]
+}
+
+model Vaccination{
+  id                  Int             @id @default(autoincrement())
+  dateVaccination     BigInt
+  dateBooster         BigInt
+
+  vaccine             Vaccine         @relation(fields: [vaccineId], references: [id])
+  vaccineId           Int
+  pet                 Pet             @relation(fields: [petId], references: [id])
+  petId               Int
+}
+
+
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- PROPOSAL -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+model Proposal {
+  id                  Int             @id @default(autoincrement())
+  description         String
+  isDisable           Boolean         @default(false)
+
+  user                User            @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  userId              Int
+  type                Type            @relation(fields: [typeId], references: [id])
+  typeId              Int
+  address             Address?        @relation(fields: [addressId], references: [id])
+  addressId           Int?
+
+  species             Specie[]
+  planifications      Planification[]
+}
+
+model Type {
+  id                  Int             @id @default(autoincrement())
+  name                String
+  addressProposal     Boolean
+
+  proposals           Proposal[]
+  species             Specie[]
+}
+
+
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- PLANIFICATION -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+model Planification {
+  id                  Int             @id @default(autoincrement())
+  dateTime            BigInt
+  isDisplay           Boolean         @default(true)
+
+  proposal            Proposal        @relation(fields: [proposalId], references: [id])
+  proposalId          Int
+
+  requests            Request[]
+  @@unique([dateTime, proposalId])
+}
+
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- REQUEST -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+model Request {
+  id                  Int             @id @default(autoincrement())
+  startTime           BigInt
+  endTime             BigInt
+  isAccepted          Boolean         @default(false)
+
+  address             Address?        @relation(fields: [addressId], references: [id])
+  addressId           Int?
+  planification       Planification   @relation(fields: [planificationId], references: [id], onDelete: Cascade)
+  planificationId     Int
+
+  pets                Pet[]
+
+  reservation         Reservation?
+}
+
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- RESERVATION -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+model Reservation {
+  id                  Int             @id @default(autoincrement())
+  isFinish            Boolean         @default(false)
+
+  request             Request         @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId           Int             @unique
+
+  photos              Photos[]
+}
+
+
+model Photos {
+  id                  Int             @id @default(autoincrement())
+  url                 String
+  description         String
+
+  reservation         Reservation     @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  reservationId       Int
+}
+
+//-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- COMMON -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+model Address {
+  id                  Int             @id @default(autoincrement())
+  country             String
+  city                String
+  street              String
+  number              String
+
+  Proposals           Proposal[]
+  Requests            Request[]
+
+  @@unique([country, city, street, number])
+}
